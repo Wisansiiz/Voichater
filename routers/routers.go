@@ -2,7 +2,9 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"online-voice-channel/controller"
+	"online-voice-channel/interceptor"
 	"online-voice-channel/setting"
 )
 
@@ -15,7 +17,8 @@ func SetupRouter() *gin.Engine {
 	//r.Static("/static", "static")
 	// 告诉gin框架去哪里找模板文件
 	//r.LoadHTMLGlob("templates/*")
-	r.GET("/", controller.IndexHandler)
+	//r.GET("/", controller.IndexHandler)
+	r.GET("/home", interceptor.ConfInterceptor(), homeHandler)
 
 	// v1
 	v1Group := r.Group("v1")
@@ -30,5 +33,17 @@ func SetupRouter() *gin.Engine {
 		// 删除某一个待办事项
 		v1Group.DELETE("/todo/:id", controller.DeleteATodo)
 	}
+	loginGroup := r.Group("api")
+	{
+		loginGroup.POST("/login", controller.Login)
+	}
 	return r
+}
+func homeHandler(c *gin.Context) {
+	username := c.MustGet("username").(string)
+	c.JSON(http.StatusOK, gin.H{
+		"code": 2000,
+		"msg":  "success",
+		"data": gin.H{"username": username},
+	})
 }

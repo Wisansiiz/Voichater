@@ -11,21 +11,24 @@ import (
 请求来了  -->  控制器      --> 业务逻辑  --> 模型层的增删改查
 */
 
-func IndexHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
-}
-
 func CreateTodo(c *gin.Context) {
 	// 前端页面填写待办事项 点击提交 会发请求到这里
 	// 1. 从请求中把数据拿出来
 	var todo models.Todo
-	c.BindJSON(&todo)
+	err := c.ShouldBind(&todo)
+	if err != nil {
+		return
+	}
 	// 2. 存入数据库
-	err := models.CreateTodo(&todo)
+	err = models.CreateTodo(&todo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, todo)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"msg":  "success",
+			"data": todo,
+		})
 	}
 }
 
@@ -50,7 +53,10 @@ func UpdateATodo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.BindJSON(&todo)
+	err = c.ShouldBind(&todo)
+	if err != nil {
+		return
+	}
 	if err = models.UpdateATodo(todo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {

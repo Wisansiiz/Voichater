@@ -44,14 +44,6 @@ type EncryptSecret struct {
 	MoneySecret string `yaml:"moneySecret"`
 }
 
-func replaceEnvVars(input string) string {
-	re := regexp.MustCompile("\\$\\{([^}]+)}")
-	return re.ReplaceAllStringFunc(input, func(match string) string {
-		envVarName := match[2 : len(match)-1]
-		return os.Getenv(envVarName)
-	})
-}
-
 func InitConfig() {
 	workDir, _ := os.Getwd()
 	vp := viper.New()

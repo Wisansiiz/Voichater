@@ -1,12 +1,14 @@
 package configs
 
 import (
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 	"os"
 	"regexp"
 )
 
 var Conf *AppConfig
+
+const defaultConfFile = "./configs/locales/config.yaml"
 
 // AppConfig 应用程序配置
 type AppConfig struct {
@@ -31,7 +33,7 @@ type RedisConfig struct {
 	RedisHost     string `yaml:"redisHost"`
 	RedisPort     string `yaml:"redisPort"`
 	RedisUsername string `yaml:"redisUsername"`
-	RedisPassword string `yaml:"redisPwd"`
+	RedisPassword string `yaml:"redisPassword"`
 	RedisDbName   int    `yaml:"redisDbName"`
 	RedisNetwork  string `yaml:"redisNetwork"`
 }
@@ -44,36 +46,20 @@ type EncryptSecret struct {
 	MoneySecret string `yaml:"moneySecret"`
 }
 
-func InitConfig() {
-	workDir, _ := os.Getwd()
-	vp := viper.New()
-	vp.SetConfigName("config")
-	vp.SetConfigType("yaml")
-	vp.AddConfigPath(workDir + "/configs/locales")
-	vp.AddConfigPath(workDir)
-	vp.AutomaticEnv()
-	err := vp.ReadInConfig()
+func InitConfig() error {
+	confFile, err := os.ReadFile(defaultConfFile)
 	if err != nil {
 		panic(err)
 	}
+	// 解析配置文件
+	confFile = []byte(replaceEnvVars(string(confFile)))
+	return yaml.Unmarshal(confFile, &Conf)
+}
+
+func replaceEnvVars(input string) string {
 	re := regexp.MustCompile("\\$\\{([^}]+)}")
-	for k, v := range vp.AllSettings() {
-		if mp, ok := v.(map[string]any); ok {
-			for k2, v2 := range mp {
-				if s, ok2 := v2.(string); ok2 {
-					if re.MatchString(s) {
-						err = vp.BindEnv(k2, v2.(string)[2:len(s)-1])
-						vp.Set(k+"."+k2, vp.Get(k2))
-					}
-				}
-			}
-		}
-	}
-	if err != nil {
-		panic(err)
-	}
-	err = vp.Unmarshal(&Conf)
-	if err != nil {
-		panic(err)
-	}
+	return re.ReplaceAllStringFunc(input, func(match string) string {
+		envVarName := match[2 : len(match)-1]
+		return os.Getenv(envVarName)
+	})
 }

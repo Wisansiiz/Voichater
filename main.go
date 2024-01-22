@@ -10,9 +10,12 @@ import (
 
 func main() {
 	// 加载配置文件
-	configs.InitConfig()
+	err := configs.InitConfig()
+	if err != nil {
+		panic(err)
+	}
 	// 连接数据库
-	err := dao.InitMySQL(configs.Conf.MySql)
+	err = dao.InitMySQL(configs.Conf.MySql)
 	if err != nil {
 		fmt.Printf("init mysql failed, err:%v\n", err)
 		panic(err)

@@ -1,8 +1,0 @@
-database:
-  user: ${MYSQL_USER}
-  password: ${MYSQL_PWD}
-  host: mysql.sqlpub.com
-  port: 3306
-  db: online_voice_channel
-port: 9000
-release: false

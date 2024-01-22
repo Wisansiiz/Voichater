@@ -3,13 +3,13 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"online-voice-channel/configs"
 	"online-voice-channel/controller"
 	"online-voice-channel/interceptor"
-	"online-voice-channel/setting"
 )
 
 func SetupRouter() *gin.Engine {
-	if setting.Conf.Release {
+	if configs.Conf.Release {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()

@@ -1,0 +1,21 @@
+port: 9000
+release: false
+
+mysql:
+  user: ${MYSQL_USER}
+  password: ${MYSQL_PWD}
+  host: mysql.sqlpub.com
+  port: 3306
+  db: online_voice_channel
+
+redis:
+  redisDbName: 4
+  redisHost: 127.0.0.1
+  redisPort: 6379
+  redisPassword: 123456
+  redisNetwork: "tcp"
+
+encryptSecret:
+  jwtSecret: "FanOne666Secret"
+  emailSecret: "EmailSecret"
+  phoneSecret: "PhoneSecret"

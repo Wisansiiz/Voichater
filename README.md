@@ -1,6 +1,6 @@
 # 在线语音频道的实现
 
-在./conf/config.yaml中使用 `${}` 的形式注入环境变量
+在./configs/locales/config.yaml中使用 `${}` 的形式注入环境变量
 
 安装依赖
 

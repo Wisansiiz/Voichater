@@ -9,13 +9,33 @@ mysql:
   db: online_voice_channel
 
 redis:
-  redisDbName: 4
+  redisDbName: 0
   redisHost: 127.0.0.1
   redisPort: 6379
+  redisUsername:
   redisPassword: 123456
   redisNetwork: "tcp"
+
+cache:
+  cacheType: redis
+  cacheEmpires: 600
+  cacheWarmUp:
+  cacheServer:
 
 encryptSecret:
   jwtSecret: "FanOne666Secret"
   emailSecret: "EmailSecret"
   phoneSecret: "PhoneSecret"
+
+oss:
+  AccessKeyId:
+  AccessKeySecret:
+  BucketName:
+  QiNiuServer:
+
+rabbitMq:
+  rabbitMQ: amqp
+  rabbitMQUser: guest
+  rabbitMQPassWord: guest
+  rabbitMQHost: localhost
+  rabbitMQPort: 5672

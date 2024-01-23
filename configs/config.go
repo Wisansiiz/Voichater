@@ -16,7 +16,10 @@ type AppConfig struct {
 	Port          int            `yaml:"port"`
 	MySql         *MySqlConfig   `yaml:"mysql"`
 	Redis         *RedisConfig   `yaml:"redis"`
+	Cache         *Cache         `yaml:"cache"`
 	EncryptSecret *EncryptSecret `yaml:"encryptSecret"`
+	Oss           *Oss           `yaml:"oss"`
+	RabbitMq      *RabbitMq      `yaml:"rabbitMq"`
 }
 
 // MySqlConfig 数据库配置
@@ -38,6 +41,14 @@ type RedisConfig struct {
 	RedisNetwork  string `yaml:"redisNetwork"`
 }
 
+// Cache 缓存配置
+type Cache struct {
+	CacheType    string `yaml:"cacheType"`
+	CacheExpires int64  `yaml:"cacheExpires"`
+	CacheWarmUp  bool   `yaml:"cacheWarmUp"`
+	CacheServer  string `yaml:"cacheServer"`
+}
+
 // EncryptSecret 加密的东西
 type EncryptSecret struct {
 	JwtSecret   string `yaml:"jwtSecret"`
@@ -46,14 +57,36 @@ type EncryptSecret struct {
 	MoneySecret string `yaml:"moneySecret"`
 }
 
-func InitConfig() error {
+// Oss 阿里云OSS配置
+type Oss struct {
+	BucketName      string `yaml:"bucketName"`
+	AccessKeyId     string `yaml:"accessKeyId"`
+	AccessKeySecret string `yaml:"accessKeySecret"`
+	Endpoint        string `yaml:"endPoint"`
+	EndpointOut     string `yaml:"endpointOut"`
+	QiNiuServer     string `yaml:"qiNiuServer"`
+}
+
+// RabbitMq 队列配置
+type RabbitMq struct {
+	RabbitMQ         string `yaml:"rabbitMq"`
+	RabbitMQUser     string `yaml:"rabbitMqUser"`
+	RabbitMQPassWord string `yaml:"rabbitMqPassWord"`
+	RabbitMQHost     string `yaml:"rabbitMqHost"`
+	RabbitMQPort     string `yaml:"rabbitMqPort"`
+}
+
+func InitConfig() {
 	confFile, err := os.ReadFile(defaultConfFile)
 	if err != nil {
 		panic(err)
 	}
 	// 解析配置文件
 	confFile = []byte(replaceEnvVars(string(confFile)))
-	return yaml.Unmarshal(confFile, &Conf)
+	err = yaml.Unmarshal(confFile, &Conf)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func replaceEnvVars(input string) string {

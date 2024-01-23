@@ -1,6 +1,8 @@
 package models
 
-import "online-voice-channel/test"
+import (
+	"online-voice-channel/pkg/utils/jwt"
+)
 
 type Login struct {
 	Username string `json:"username"`
@@ -14,7 +16,7 @@ type Login struct {
 
 func LoginOn(login *Login) (err error) {
 	if login.Username == "123" && login.Password == "123" {
-		if login.Token, err = test.GenerateToken(login.Username); err == nil {
+		if login.Token, err = jwt.GenerateToken(login.Username); err == nil {
 			return
 		}
 	}

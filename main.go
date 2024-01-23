@@ -30,6 +30,6 @@ func main() {
 	r := routers.SetupRouter()
 	if err := r.Run(fmt.Sprintf(":%d", configs.Conf.Port)); err != nil {
 		fmt.Printf("server startup failed, err:%v\n", err)
-		return
+		panic(err)
 	}
 }

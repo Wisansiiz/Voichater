@@ -3,7 +3,7 @@ package interceptor
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"online-voice-channel/test"
+	"online-voice-channel/pkg/utils/jwt"
 	"strings"
 )
 
@@ -29,7 +29,7 @@ func ConfInterceptor() func(c *gin.Context) {
 			return
 		}
 		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
-		mc, err := test.ParseToken(parts[1])
+		mc, err := jwt.ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code": 2005,

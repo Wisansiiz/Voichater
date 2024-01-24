@@ -50,7 +50,6 @@ func InitMySQL(cfg *configs.MySqlConfig) {
 	sqlDB.SetMaxOpenConns(100)          // SetMaxOpenConns 设置数据库的最大打开连接数
 	sqlDB.SetConnMaxLifetime(time.Hour) // SetConnMaxLifetime 设置连接可重用的最大时间量
 	DB = db                             // 设置全局DB
-	return
 }
 func Close(DB *gorm.DB) {
 	sqlDB, err := DB.DB()

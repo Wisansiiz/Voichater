@@ -7,18 +7,18 @@ import (
 )
 
 type MyCustomClaims struct {
-	UserID     int    `json:"userID"`
+	UserID     uint   `json:"userID"`
 	Username   string `json:"username"`
 	GrantScope string `json:"grant_scope"`
 	jwt.RegisteredClaims
 }
 
 // 签名密钥
-const signKey = "hello jwt"
+const signKey = "my jwt"
 
-func GenerateToken(username string) (string, error) {
+func GenerateToken(id uint, username string) (string, error) {
 	claim := MyCustomClaims{
-		UserID:     000001,
+		UserID:     id,
 		Username:   username,
 		GrantScope: "read_user_info",
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -35,21 +35,21 @@ func GenerateToken(username string) (string, error) {
 	return token, err
 }
 func ParseToken(tokenString string) (*MyCustomClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signKey), nil //返回签名密钥
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&MyCustomClaims{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(signKey), nil //返回签名密钥
+		})
 	if err != nil {
 		return nil, err
 	}
-
 	if !token.Valid {
 		return nil, errors.New("claim invalid")
 	}
-
 	claims, ok := token.Claims.(*MyCustomClaims)
 	if !ok {
 		return nil, errors.New("invalid claim type")
 	}
-
 	return claims, nil
 }

@@ -20,6 +20,7 @@ func InitRedis(cfg *configs.RedisConfig) {
 	})
 	_, err := client.Ping(RedisContext).Result()
 	if err != nil {
+		fmt.Println("Redis 未启动或初始化失败")
 		panic(err)
 	}
 	RedisClient = client

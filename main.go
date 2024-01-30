@@ -15,7 +15,10 @@ func main() {
 	dao.InitMySQL(configs.Conf.MySql)
 	// 初始化redis
 	dao.InitRedis(configs.Conf.Redis)
-	defer dao.Close(dao.DB) // 程序退出关闭数据库连接
+	// 初始化sqlite
+	dao.InitSqlite()
+	defer dao.Close(dao.DB)     // 程序退出关闭数据库连接
+	defer dao.Close(dao.DBlite) // 程序退出关闭数据库连接
 	// 模型绑定
 	err := dao.DB.AutoMigrate(&models.Todo{})
 	if err != nil {

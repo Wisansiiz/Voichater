@@ -1,4 +1,4 @@
-package controller
+package api
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,7 +7,7 @@ import (
 )
 
 /*
- url     --> controller  --> logic   -->    model
+ url     --> api  --> logic   -->    model
 请求来了  -->  控制器      --> 业务逻辑  --> 模型层的增删改查
 */
 

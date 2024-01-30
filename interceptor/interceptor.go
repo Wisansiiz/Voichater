@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func ConfInterceptor() func(c *gin.Context) {
+func ConfInterceptor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {

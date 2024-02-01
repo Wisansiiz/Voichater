@@ -6,13 +6,18 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 // Message 消息模型
 type Message struct {
+	MessageID    int64     `json:"message_id"`
+	SenderUserID int64     `json:"sender_user_id" validate:"required"`
+	ChannelID    string    `json:"channel_id" validate:"required"`
+	Content      string    `json:"content" validate:"required"`
+	Attachment   string    `json:"attachment"`
+	SendDate     time.Time `json:"send_date"`
 	gorm.Model
-	Text   string `json:"text"`
-	RoomID string `json:"room_id"`
 }
 
 var (
@@ -28,7 +33,7 @@ var (
 )
 
 func FindHistory(list *[]Message, r *http.Request, db *gorm.DB) {
-	db.Where("room_id = ?", r.URL.Query().Get("roomID")).Find(&list)
+	db.Where("channel_id = ?", r.URL.Query().Get("ChannelID")).Find(&list)
 }
 
 func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -46,11 +51,11 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}(conn)
 
 	// 从URL参数获取房间号
-	roomID := r.URL.Query().Get("roomID")
+	channelID := r.URL.Query().Get("ChannelID")
 
 	// 将连接加入到对应的房间
 	roomsMutex.Lock()
-	rooms[roomID] = append(rooms[roomID], conn)
+	rooms[channelID] = append(rooms[channelID], conn)
 	roomsMutex.Unlock()
 
 	// 接收和处理消息
@@ -62,19 +67,19 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		// 持久化消息到数据库
-		text := string(p)
-		db.Create(&Message{Text: text, RoomID: roomID})
+		content := string(p)
+		db.Create(&Message{Content: content, ChannelID: channelID})
 
 		// 将消息广播给房间内的所有客户端
-		go broadcastMessage(roomID, conn, messageType, p)
+		go broadcastMessage(channelID, conn, messageType, p)
 	}
 
 	// 在连接关闭时，将其从房间中移除
 	roomsMutex.Lock()
-	connections := rooms[roomID]
+	connections := rooms[channelID]
 	for i, c := range connections {
 		if c == conn {
-			rooms[roomID] = append(connections[:i], connections[i+1:]...)
+			rooms[channelID] = append(connections[:i], connections[i+1:]...)
 			break
 		}
 	}

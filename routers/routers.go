@@ -34,11 +34,13 @@ func SetupRouter() *gin.Engine {
 			authed.DELETE("/todo/:id", api.DeleteATodo)
 		}
 	}
-	loginGroup := r.Group("api")
+	v := r.Group("api")
 	{
-		loginGroup.POST("/login", api.Login)
-		loginGroup.GET("/ws", api.Ws)
-		loginGroup.GET("/history", api.FindMessage)
+		v.POST("/register", api.UserRegister)
+		v.POST("/login", api.Login)
+		v.GET("/servers-list", api.FindUserServersList)
+		v.GET("/ws", api.Ws)
+		v.GET("/history", api.FindMessage)
 	}
 	return r
 }

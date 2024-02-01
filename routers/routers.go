@@ -14,6 +14,7 @@ func SetupRouter() *gin.Engine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
+	r.Use(cors.Default())
 	// 静态文件去
 	r.StaticFS("/static", http.Dir("./static"))
 
@@ -36,7 +37,6 @@ func SetupRouter() *gin.Engine {
 	loginGroup := r.Group("api")
 	{
 		loginGroup.POST("/login", api.Login)
-		r.Use(cors.Default())
 		loginGroup.GET("/ws", api.Ws)
 		loginGroup.GET("/history", api.FindMessage)
 	}

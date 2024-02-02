@@ -33,7 +33,7 @@ var (
 )
 
 func FindHistory(list *[]Message, r *http.Request, db *gorm.DB) {
-	db.Where("channel_id = ?", r.URL.Query().Get("ChannelID")).Find(&list)
+	db.Where("channel_id = ?", r.URL.Query().Get("channelID")).Find(&list)
 }
 
 func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -51,7 +51,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}(conn)
 
 	// 从URL参数获取房间号
-	channelID := r.URL.Query().Get("ChannelID")
+	channelID := r.URL.Query().Get("channelID")
 
 	// 将连接加入到对应的房间
 	roomsMutex.Lock()
@@ -68,7 +68,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		// 持久化消息到数据库
 		content := string(p)
-		db.Create(&Message{Content: content, ChannelID: channelID})
+		db.Create(&Message{Content: content, ChannelID: channelID, SendDate: time.Now()})
 
 		// 将消息广播给房间内的所有客户端
 		go broadcastMessage(channelID, conn, messageType, p)

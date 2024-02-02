@@ -23,12 +23,30 @@ func UserRegister(c *gin.Context) {
 	})
 }
 
+func UserLogin(c *gin.Context) {
+	var user models.User
+	_ = c.ShouldBind(&user)
+	token, err := service.UserLogin(&user)
+	if err != nil || token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 200,
+			"msg":  "err",
+			"data": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "success",
+		"data": gin.H{
+			"token": token,
+		},
+	})
+}
+
 func FindUserServersList(c *gin.Context) {
 	var user models.User
 	var server []models.Server
-	if err := translator.ReErr(user); err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
 	_ = c.ShouldBind(&user)
 	if err := service.FindUserServersList(&user, &server); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

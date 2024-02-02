@@ -21,6 +21,8 @@ func main() {
 	defer dao.Close(dao.DBlite) // 程序退出关闭数据库连接
 	// 模型绑定
 	err := dao.DB.AutoMigrate(&models.Todo{})
+	err = dao.DB.AutoMigrate(&models.User{})
+	err = dao.DBlite.AutoMigrate(&models.Message{})
 	if err != nil {
 		panic(err)
 	}

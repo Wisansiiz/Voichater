@@ -38,6 +38,12 @@ func UserLogin(user *models.UserLoginResponse) (token string, err error) {
 		return
 	}
 	token, err = jwt.GenerateToken(u)
+	if err != nil {
+		return
+	}
+	if err = dao.DB.Model(&u).Update("last_login_date", time.Now()).Error; err != nil {
+		return
+	}
 	return token, err
 }
 

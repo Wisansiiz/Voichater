@@ -18,7 +18,7 @@ type MyCustomClaims struct {
 // 签名密钥
 const signKey = "my jwt"
 
-func GenerateToken(user *models.User) (string, error) {
+func GenerateToken(user models.User) (string, error) {
 	claim := MyCustomClaims{
 		UserID:       user.UserID,
 		Username:     user.Username,

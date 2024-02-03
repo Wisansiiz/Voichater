@@ -24,7 +24,7 @@ func UserLogin(c *gin.Context) {
 	var user models.UserLoginResponse
 	_ = c.ShouldBind(&user)
 	token, err := service.UserLogin(&user)
-	if err != nil || token == "" {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": 200,
 			"msg":  "err",

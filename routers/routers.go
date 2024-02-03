@@ -38,9 +38,14 @@ func SetupRouter() *gin.Engine {
 	{
 		v.POST("/register", api.UserRegister)
 		v.POST("/login", api.UserLogin)
-		v.GET("/servers-list", api.FindUserServersList)
-		v.GET("/ws", api.Ws)
-		v.GET("/history", api.FindMessage)
+		authed := v.Group("/") // 需要登陆保护
+		authed.Use(interceptor.ConfInterceptor())
+		{
+			authed.GET("/servers-list", api.FindUserServersList)
+			authed.GET("/ws", api.Ws)
+			authed.GET("/history", api.FindMessage)
+		}
+
 	}
 	return r
 }

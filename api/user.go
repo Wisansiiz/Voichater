@@ -4,18 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"online-voice-channel/models"
-	"online-voice-channel/pkg/utils/translator"
 	"online-voice-channel/service"
 )
 
 func UserRegister(c *gin.Context) {
 	var user models.User
-	if err := translator.ReErr(user); err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
 	_ = c.ShouldBind(&user)
 	if err := service.UserRegister(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -24,7 +21,7 @@ func UserRegister(c *gin.Context) {
 }
 
 func UserLogin(c *gin.Context) {
-	var user models.User
+	var user models.UserLoginResponse
 	_ = c.ShouldBind(&user)
 	token, err := service.UserLogin(&user)
 	if err != nil || token == "" {

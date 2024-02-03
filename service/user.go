@@ -7,19 +7,24 @@ import (
 	"online-voice-channel/models"
 	"online-voice-channel/pkg/utils/jwt"
 	"online-voice-channel/pkg/utils/translator"
+	"time"
 )
 
 func UserRegister(user *models.User) (err error) {
+	if err = translator.ReErr(user); err != nil {
+		return err
+	}
 	pwd, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost) //加密处理
 	if err != nil {
 		return err
 	}
 	user.PasswordHash = string(pwd)
+	user.RegistrationDate = time.Now()
 	err = dao.DB.Create(&user).Error
 	return err
 }
 
-func UserLogin(user *models.User) (token string, err error) {
+func UserLogin(user *models.UserLoginResponse) (token string, err error) {
 	if err = translator.ReErr(user); err != nil {
 		return
 	}
@@ -29,10 +34,10 @@ func UserLogin(user *models.User) (token string, err error) {
 		return
 	}
 	pwd := user.PasswordHash
-	if err = bcrypt.CompareHashAndPassword([]byte(pwd), []byte(u.PasswordHash)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(pwd)); err != nil {
 		return
 	}
-	token, err = jwt.GenerateToken(user)
+	token, err = jwt.GenerateToken(u)
 	return token, err
 }
 

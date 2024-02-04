@@ -26,7 +26,7 @@ func UserLogin(c *gin.Context) {
 	token, err := service.UserLogin(&user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": 200,
+			"code": 400,
 			"msg":  "err",
 			"data": err.Error(),
 		})

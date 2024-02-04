@@ -32,8 +32,8 @@ var (
 	roomsMutex = &sync.RWMutex{}
 )
 
-func FindHistory(list *[]Message, r *http.Request, db *gorm.DB) {
-	db.Where("channel_id = ?", r.URL.Query().Get("channelID")).Find(&list)
+func FindHistory(list *[]Message, r *http.Request, db *gorm.DB) error {
+	return db.Where("channel_id = ?", r.URL.Query().Get("channelID")).Find(&list).Error
 }
 
 func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

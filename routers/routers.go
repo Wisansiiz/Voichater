@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"online-voice-channel/api"
@@ -9,43 +8,45 @@ import (
 	"online-voice-channel/interceptor"
 )
 
+func Cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		method := c.Request.Method
+		origin := c.Request.Header.Get("Origin")
+		if origin != "" {
+			c.Header("Access-Control-Allow-Origin", "*") // 可将将 * 替换为指定的域名
+			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+			c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+		if method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+		}
+		c.Next()
+	}
+}
+
 func SetupRouter() *gin.Engine {
 	if configs.Conf.Release {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
-	r.Use(cors.Default())
+	r.Use(Cors())
 	// 静态文件去
 	r.StaticFS("/static", http.Dir("./static"))
 
-	// v1
-	v1Group := r.Group("v1")
-	{
-		authed := v1Group.Group("/") // 需要登陆保护
-		authed.Use(interceptor.ConfInterceptor())
-		{
-			// 添加待办事项
-			authed.POST("/todo", api.CreateTodo)
-			// 查看所有的待办事项
-			authed.GET("/todo", api.GetTodoList)
-			// 修改某一个待办事项
-			authed.PUT("/todo/:id", api.UpdateATodo)
-			// 删除某一个待办事项
-			authed.DELETE("/todo/:id", api.DeleteATodo)
-		}
-	}
 	v := r.Group("api")
 	{
 		v.POST("/register", api.UserRegister)
 		v.POST("/login", api.UserLogin)
+		v.GET("/ws", api.Ws)
 		authed := v.Group("/") // 需要登陆保护
 		authed.Use(interceptor.ConfInterceptor())
 		{
+			authed.POST("/auth", interceptor.Auth)
 			authed.GET("/servers-list", api.FindUserServersList)
-			authed.GET("/ws", api.Ws)
 			authed.GET("/history", api.FindMessage)
 		}
-
 	}
 	return r
 }

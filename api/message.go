@@ -16,7 +16,13 @@ func Ws(c *gin.Context) {
 
 func FindMessage(c *gin.Context) {
 	_ = c.ShouldBind(&msg)
-	models.FindHistory(&msg, c.Request, dao.DB)
+	if err := models.FindHistory(&msg, c.Request, dao.DB); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 400,
+			"msg":  "发生错误",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"msg":  "success",

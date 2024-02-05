@@ -63,3 +63,13 @@ func FindUserServersList(user *models.User, servers *[]models.Server) (err error
 	fmt.Printf("用户 %s 加入的服务器列表:\n", user.Username)
 	return err
 }
+
+func UserLogout(token string) (err error) {
+	if _, err = dao.RedisClient.Incr(dao.RedisContext, token).Result(); err != nil {
+		return err
+	}
+	if _, err = dao.RedisClient.Expire(dao.RedisContext, token, time.Hour).Result(); err != nil {
+		return err
+	}
+	return err
+}

@@ -44,6 +44,7 @@ func SetupRouter() *gin.Engine {
 		authed.Use(interceptor.ConfInterceptor())
 		{
 			authed.POST("/auth", interceptor.Auth)
+			authed.POST("/logout", api.UserLogout)
 			authed.GET("/servers-list", api.FindUserServersList)
 			authed.GET("/history", api.FindMessage)
 		}

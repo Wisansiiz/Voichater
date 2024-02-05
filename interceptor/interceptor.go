@@ -3,6 +3,7 @@ package interceptor
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"online-voice-channel/dao"
 	"online-voice-channel/pkg/utils/jwt"
 	"strings"
 )
@@ -38,18 +39,28 @@ func ConfInterceptor() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		token := parts[1]
+		result, err := dao.RedisClient.Exists(dao.RedisContext, token).Result()
+		if err != nil {
+			return
+		}
+		if result > 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 2006,
+				"msg":  "Token在黑名单中",
+			})
+			c.Abort()
+			return
+		}
 		// 将当前请求的username信息保存到请求的上下文c上
 		c.Set("ExpiresAt", mc.RegisteredClaims.ExpiresAt)
 		c.Next() // 后续的处理函数可以用过c.Get("ExpiresAt")来获取当前请求的用户信息}
 	}
 }
 func Auth(c *gin.Context) {
-	expires, _ := c.Get("ExpiresAt")
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"msg":  "欢迎",
-		"data": gin.H{
-			"expires": expires,
-		},
+		"data": "",
 	})
 }

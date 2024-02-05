@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"online-voice-channel/models"
 	"online-voice-channel/service"
+	"strings"
 )
 
 func UserRegister(c *gin.Context) {
@@ -27,7 +28,7 @@ func UserLogin(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": 400,
-			"msg":  "err",
+			"msg":  "账号或密码错误",
 			"data": err.Error(),
 		})
 		return
@@ -52,5 +53,24 @@ func FindUserServersList(c *gin.Context) {
 		"code": 200,
 		"msg":  "success",
 		"data": server,
+	})
+}
+
+func UserLogout(c *gin.Context) {
+	authHeader := c.Request.Header.Get("Authorization")
+	parts := strings.SplitN(authHeader, " ", 2)
+	token := parts[1]
+	if err := service.UserLogout(token); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "发生错误",
+			"data": "",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "退出登录成功",
+		"data": "",
 	})
 }

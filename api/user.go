@@ -43,9 +43,10 @@ func UserLogin(c *gin.Context) {
 }
 
 func FindUserServersList(c *gin.Context) {
+	username, _ := c.Get("username")
 	var user models.User
+	user.Username = username.(string)
 	var server []models.Server
-	_ = c.ShouldBind(&user)
 	if err := service.FindUserServersList(&user, &server); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

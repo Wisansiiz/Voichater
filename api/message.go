@@ -5,18 +5,19 @@ import (
 	"net/http"
 	"online-voice-channel/dao"
 	"online-voice-channel/models"
+	"online-voice-channel/service"
 )
 
 var msg []models.Message
 
 func Ws(c *gin.Context) {
 	// WebSocket处理程序
-	models.HandleWebSocket(c.Writer, c.Request, dao.DB)
+	service.HandleWebSocket(c.Writer, c.Request, dao.DB)
 }
 
 func FindMessage(c *gin.Context) {
 	_ = c.ShouldBind(&msg)
-	if err := models.FindHistory(&msg, c.Request, dao.DB); err != nil {
+	if err := service.FindHistory(&msg, c.Request, dao.DB); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": 400,
 			"msg":  "发生错误",

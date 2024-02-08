@@ -1,9 +1,9 @@
 package jwt
 
 import (
+	"Voichatter/models"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
-	"online-voice-channel/models"
 	"time"
 )
 

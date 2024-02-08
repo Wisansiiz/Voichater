@@ -1,11 +1,11 @@
 package api
 
 import (
+	"Voichatter/dao"
+	"Voichatter/models"
+	"Voichatter/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"online-voice-channel/dao"
-	"online-voice-channel/models"
-	"online-voice-channel/service"
 )
 
 var msg []models.Message

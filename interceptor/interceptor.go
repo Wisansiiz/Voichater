@@ -1,10 +1,10 @@
 package interceptor
 
 import (
+	"Voichatter/dao"
+	"Voichatter/pkg/utils/jwt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"online-voice-channel/dao"
-	"online-voice-channel/pkg/utils/jwt"
 	"strings"
 )
 

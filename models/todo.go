@@ -1,10 +1,10 @@
 package models
 
 import (
+	"Voichatter/dao"
+	"Voichatter/pkg/utils/translator"
 	"errors"
 	"gorm.io/gorm"
-	"online-voice-channel/dao"
-	"online-voice-channel/pkg/utils/translator"
 )
 
 // Todo Model

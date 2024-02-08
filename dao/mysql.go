@@ -1,10 +1,10 @@
 package dao
 
 import (
+	"Voichatter/configs"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"online-voice-channel/configs"
 	"time"
 
 	"fmt"

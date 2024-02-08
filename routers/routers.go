@@ -1,11 +1,11 @@
 package routers
 
 import (
+	"Voichatter/api"
+	"Voichatter/configs"
+	"Voichatter/interceptor"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"online-voice-channel/api"
-	"online-voice-channel/configs"
-	"online-voice-channel/interceptor"
 )
 
 func Cors() gin.HandlerFunc {

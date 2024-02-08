@@ -1,16 +1,16 @@
 package main
 
 import (
+	"Voichatter/configs"
+	"Voichatter/dao"
+	"Voichatter/models"
+	"Voichatter/routers"
 	"fmt"
-	"online-voice-channel/configs"
-	"online-voice-channel/dao"
-	"online-voice-channel/models"
-	"online-voice-channel/routers"
 )
 
 func main() {
 	// 加载配置文件
-	const defaultConfFile = "/src/configs/locales/config.yaml"
+	const defaultConfFile = "./configs/locales/config.yaml"
 	configs.InitConfig(defaultConfFile)
 	// 初始化mysql
 	dao.InitMySQL(configs.Conf.MySql)

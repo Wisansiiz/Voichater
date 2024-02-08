@@ -1,12 +1,12 @@
 package service
 
 import (
+	"Voichatter/dao"
+	"Voichatter/models"
+	"Voichatter/pkg/utils/jwt"
+	"Voichatter/pkg/utils/translator"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
-	"online-voice-channel/dao"
-	"online-voice-channel/models"
-	"online-voice-channel/pkg/utils/jwt"
-	"online-voice-channel/pkg/utils/translator"
 	"time"
 )
 

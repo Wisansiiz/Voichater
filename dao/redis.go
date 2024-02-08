@@ -1,10 +1,10 @@
 package dao
 
 import (
+	"Voichatter/configs"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"online-voice-channel/configs"
 )
 
 // RedisClient Redis缓存客户端单例

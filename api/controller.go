@@ -1,9 +1,9 @@
 package api
 
 import (
+	"Voichatter/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"online-voice-channel/models"
 )
 
 /*

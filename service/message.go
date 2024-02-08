@@ -1,11 +1,11 @@
 package service
 
 import (
+	"Voichatter/models"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"online-voice-channel/models"
 	"sync"
 	"time"
 )

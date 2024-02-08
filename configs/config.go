@@ -8,7 +8,7 @@ import (
 
 var Conf *AppConfig
 
-const defaultConfFile = "configs/locales/config.yaml"
+const defaultConfFile = "/src/configs/locales/config.yaml"
 
 // AppConfig 应用程序配置
 type AppConfig struct {

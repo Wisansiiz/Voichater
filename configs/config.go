@@ -8,8 +8,6 @@ import (
 
 var Conf *AppConfig
 
-const defaultConfFile = "src/configs/locales/config.yaml"
-
 // AppConfig 应用程序配置
 type AppConfig struct {
 	Release       bool           `yaml:"release"`
@@ -76,7 +74,7 @@ type RabbitMq struct {
 	RabbitMQPort     string `yaml:"rabbitMqPort"`
 }
 
-func InitConfig() {
+func InitConfig(defaultConfFile string) {
 	confFile, err := os.ReadFile(defaultConfFile)
 	if err != nil {
 		panic(err)

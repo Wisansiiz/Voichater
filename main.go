@@ -10,7 +10,8 @@ import (
 
 func main() {
 	// 加载配置文件
-	configs.InitConfig()
+	const defaultConfFile = "configs/locales/config.yaml"
+	configs.InitConfig(defaultConfFile)
 	// 初始化mysql
 	dao.InitMySQL(configs.Conf.MySql)
 	// 初始化redis

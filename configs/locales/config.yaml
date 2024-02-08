@@ -10,10 +10,10 @@ mysql:
 
 redis:
   redisDbName: 0
-  redisHost: 127.0.0.1
-  redisPort: 6379
+  redisHost: ${REDIS_HOST}
+  redisPort: ${REDIS_PORT}
   redisUsername:
-  redisPassword: 123456
+  redisPassword: ${REDIS_PSW}
   redisNetwork: "tcp"
 
 cache:

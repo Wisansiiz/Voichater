@@ -6,18 +6,11 @@ import (
 	"online-voice-channel/dao"
 	"online-voice-channel/models"
 	"online-voice-channel/routers"
-	"os"
 )
 
 func main() {
-	// 获取当前工作目录
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
 	// 加载配置文件
-	var defaultConfFile = dir + "/configs/locales/config.yaml"
+	const defaultConfFile = "/src/configs/locales/config.yaml"
 	configs.InitConfig(defaultConfFile)
 	// 初始化mysql
 	dao.InitMySQL(configs.Conf.MySql)
@@ -25,7 +18,7 @@ func main() {
 	dao.InitRedis(configs.Conf.Redis)
 	defer dao.Close(dao.DB) // 程序退出关闭数据库连接
 	// 模型绑定
-	err = dao.DB.AutoMigrate(&models.User{}, &models.Message{},
+	err := dao.DB.AutoMigrate(&models.User{}, &models.Message{},
 		&models.Channel{}, &models.Server{}, &models.Member{},
 	)
 	if err != nil {

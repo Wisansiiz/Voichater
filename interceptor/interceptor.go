@@ -57,10 +57,3 @@ func ConfInterceptor() gin.HandlerFunc {
 		c.Next() // 后续的处理函数可以用过c.Get("ExpiresAt")来获取当前请求的用户信息}
 	}
 }
-func Auth(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "欢迎",
-		"data": "",
-	})
-}

@@ -54,10 +54,11 @@ func FindUserServersList(user *models.User, server *[]models.Server) (err error)
 	}
 	// 找到用户，获取他加入的服务器列表
 	dao.DB.Table("server").
-		Joins("JOIN members ON server.server_id = member.server_id").
+		Joins("JOIN member ON server.server_id = member.server_id").
 		Where("member.user_id = ?", user.UserID).
 		Find(&server)
 	fmt.Printf("用户 %s 加入的服务器列表:\n", user.Username)
+	fmt.Println(server)
 	return err
 }
 

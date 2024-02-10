@@ -22,7 +22,6 @@ func SetupRouter() *gin.Engine {
 		authed := v.Group("/") // 需要登陆保护
 		authed.Use(interceptor.ConfInterceptor())
 		{
-			authed.POST("/auth", interceptor.Auth)
 			authed.POST("/logout", api.UserLogout)
 			authed.GET("/servers-list", api.FindUserServersList)
 			authed.GET("/history", api.FindMessage)

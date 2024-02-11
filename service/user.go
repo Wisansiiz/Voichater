@@ -5,7 +5,7 @@ import (
 	"Voichatter/models"
 	"Voichatter/pkg/utils/jwt"
 	"Voichatter/pkg/utils/translator"
-	"fmt"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -48,17 +48,11 @@ func UserLogin(user *models.UserLoginResponse) (token string, err error) {
 }
 
 func FindUserServersList(user *models.User, server *[]models.Server) (err error) {
-	// 找到用户名为 "XXX" 的用户
-	if err = dao.DB.Where("username = ?", user.Username).First(&user).Error; err != nil {
-		return err
-	}
 	// 找到用户，获取他加入的服务器列表
 	dao.DB.Table("server").
 		Joins("JOIN member ON server.server_id = member.server_id").
 		Where("member.user_id = ?", user.UserID).
 		Find(&server)
-	fmt.Printf("用户 %s 加入的服务器列表:\n", user.Username)
-	fmt.Println(server)
 	return err
 }
 
@@ -68,6 +62,32 @@ func UserLogout(token string) (err error) {
 	}
 	if _, err = dao.RedisClient.Expire(dao.RedisContext, token, time.Hour).Result(); err != nil {
 		return err
+	}
+	return err
+}
+
+func CreateServer(user *models.User, server *models.Server) (err error) {
+	// 创建服务器，创建者id为user.id，并且权限为admin
+	s := models.Server{
+		ServerName:    server.ServerName,
+		CreatorUserID: user.UserID,
+		CreateDate:    time.Now(),
+		ServerTheme:   server.ServerTheme,
+	}
+	if err = translator.ReErr(s); err != nil {
+		return
+	}
+	if err = dao.DB.Create(&s).Error; err != nil {
+		return errors.New("创建服务器失败")
+	}
+	m := models.Member{
+		UserID:      s.CreatorUserID,
+		ServerID:    s.ServerID,
+		JoinDate:    time.Now(),
+		Permissions: "admin",
+	}
+	if err = dao.DB.Create(&m).Error; err != nil {
+		return errors.New("创建服务器成员失败")
 	}
 	return err
 }

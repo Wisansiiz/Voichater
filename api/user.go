@@ -43,9 +43,9 @@ func UserLogin(c *gin.Context) {
 }
 
 func FindUserServersList(c *gin.Context) {
-	username, _ := c.Get("username")
+	userId, _ := c.Get("user_id")
 	var user models.User
-	user.Username = username.(string)
+	user.UserID = userId.(uint)
 	var server []models.Server
 	if err := service.FindUserServersList(&user, &server); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -64,7 +64,7 @@ func UserLogout(c *gin.Context) {
 	if err := service.UserLogout(token); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
-			"msg":  "发生错误",
+			"msg":  "退出登录发生错误",
 			"data": "",
 		})
 		return
@@ -72,6 +72,27 @@ func UserLogout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"msg":  "退出登录成功",
+		"data": "",
+	})
+}
+
+func CreateServer(c *gin.Context) {
+	userId, _ := c.Get("user_id")
+	var user models.User
+	user.UserID = userId.(uint)
+	var server models.Server
+	_ = c.ShouldBind(&server)
+	if err := service.CreateServer(&user, &server); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  err,
+			"data": "",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "创建成功",
 		"data": "",
 	})
 }

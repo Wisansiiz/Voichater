@@ -1,9 +1,10 @@
 package service
 
 import (
+	"Voichatter/dao"
 	"Voichatter/models"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"sync"
@@ -22,12 +23,12 @@ var (
 	roomsMutex = &sync.RWMutex{}
 )
 
-func FindHistory(list *[]models.Message, r *http.Request, db *gorm.DB) error {
-	return db.Where("channel_id = ?", r.URL.Query().Get("channelID")).Find(&list).Error
+func FindHistory(list *[]models.Message, channelID string) error {
+	return dao.DB.Where("channel_id = ?", channelID).Find(&list).Error
 }
 
-func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+func HandleWebSocket(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println(err)
 		return
@@ -41,7 +42,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}(conn)
 
 	// 从URL参数获取频道号
-	channelID := r.URL.Query().Get("channelID")
+	channelID := c.Query("channelID")
 
 	// 将连接加入到对应的房间
 	roomsMutex.Lock()
@@ -58,10 +59,10 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		// 持久化消息到数据库
 		content := string(p)
-		db.Create(&models.Message{Content: content, ChannelID: channelID, SendDate: time.Now()})
+		dao.DB.Create(&models.Message{Content: content, ChannelID: channelID, SendDate: time.Now()})
 
 		// 将消息广播给房间内的所有客户端
-		go broadcastMessage(channelID, conn, messageType, p)
+		go broadcastMessage(channelID, messageType, p)
 	}
 
 	// 在连接关闭时，将其从房间中移除
@@ -76,7 +77,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	roomsMutex.Unlock()
 }
 
-func broadcastMessage(channelID string, sender *websocket.Conn, messageType int, message []byte) {
+func broadcastMessage(channelID string, messageType int, message []byte) {
 	// 查询房间内所有连接的客户端
 	roomsMutex.RLock()
 	connections := rooms[channelID]

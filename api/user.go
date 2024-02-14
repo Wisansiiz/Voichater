@@ -4,6 +4,9 @@ import (
 	"Voichatter/models"
 	"Voichatter/service"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
+	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -95,4 +98,74 @@ func CreateServer(c *gin.Context) {
 		"msg":  "创建成功",
 		"data": "",
 	})
+}
+
+var (
+	clients  = make(map[*websocket.Conn]string)
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true // 允许所有来源
+		},
+	}
+)
+
+type Msg struct {
+	Code string         `json:"code"`
+	Data map[string]any `json:"data"`
+}
+
+func HandleWebSocket(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("=================Failed to upgrade to WebSocket:", err)
+		return
+	}
+	defer conn.Close()
+
+	currentUserID := c.Query("id")
+	clients[conn] = currentUserID
+	// 接收和处理消息
+	for {
+		var message Msg
+		_, p, err := conn.ReadMessage()
+		log.Println("currentUserID =", currentUserID)
+		if err = json.Unmarshal(p, &message); err != nil {
+			return
+		}
+		if message.Code == "offer" {
+			targetId := message.Data["targetId"]
+			log.Println("targetId =", targetId)
+			offer := message.Data["offer"]
+			broadcastMessage(targetId, currentUserID, "offer", "offer", offer)
+		} else if message.Code == "answer" {
+			targetId := message.Data["targetId"]
+			log.Println("targetId =", targetId)
+			answer := message.Data["answer"]
+			broadcastMessage(targetId, currentUserID, "answer", "answer", answer)
+		} else if message.Code == "icecandidate" {
+			targetId := message.Data["targetId"]
+			log.Println("targetId =", targetId)
+			candidate := message.Data["candidate"]
+			broadcastMessage(targetId, currentUserID, "icecandidate", "candidate", candidate)
+		}
+	}
+}
+
+func broadcastMessage(targetId any, currentUserID string, code string, dataName string, data any) {
+	for clientConn, userId := range clients {
+		if userId == targetId.(string) {
+			message := gin.H{
+				"code": code,
+				"data": gin.H{
+					"fromId": currentUserID,
+					dataName: data,
+				},
+			}
+			jsonBytes, _ := json.Marshal(message)
+			if err := clientConn.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
+				log.Println("Error writing message:", err)
+				return
+			}
+		}
+	}
 }

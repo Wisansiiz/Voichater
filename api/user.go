@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 func UserRegister(c *gin.Context) {
@@ -101,54 +102,70 @@ func CreateServer(c *gin.Context) {
 }
 
 var (
-	clients  = make(map[*websocket.Conn]string)
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true // 允许所有来源
 		},
 	}
+	clients   = make(map[*websocket.Conn]string)
+	clientsMu = &sync.RWMutex{}
 )
 
-type Msg struct {
-	Code string         `json:"code"`
-	Data map[string]any `json:"data"`
-}
-
 func HandleWebSocket(c *gin.Context) {
+	type Msg struct {
+		Code string         `json:"code"`
+		Data map[string]any `json:"data"`
+	}
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Println("=================Failed to upgrade to WebSocket:", err)
+		log.Println("Failed to upgrade to WebSocket:", err)
 		return
 	}
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+			panic(err)
+			return
+		}
+	}(conn)
 
 	currentUserID := c.Query("id")
+	clientsMu.Lock()
 	clients[conn] = currentUserID
+	clientsMu.Unlock()
 	// 接收和处理消息
 	for {
 		var message Msg
 		_, p, err := conn.ReadMessage()
-		log.Println("currentUserID =", currentUserID)
+		if err != nil {
+			log.Println(err)
+			break
+		}
 		if err = json.Unmarshal(p, &message); err != nil {
 			return
 		}
 		if message.Code == "offer" {
 			targetId := message.Data["targetId"]
-			log.Println("targetId =", targetId)
 			offer := message.Data["offer"]
 			broadcastMessage(targetId, currentUserID, "offer", "offer", offer)
 		} else if message.Code == "answer" {
 			targetId := message.Data["targetId"]
-			log.Println("targetId =", targetId)
 			answer := message.Data["answer"]
 			broadcastMessage(targetId, currentUserID, "answer", "answer", answer)
 		} else if message.Code == "icecandidate" {
 			targetId := message.Data["targetId"]
-			log.Println("targetId =", targetId)
 			candidate := message.Data["candidate"]
 			broadcastMessage(targetId, currentUserID, "icecandidate", "candidate", candidate)
 		}
 	}
+	// 在连接关闭时，将其从房间中移除
+	clientsMu.Lock()
+	for clientConn := range clients {
+		if clientConn == conn {
+			delete(clients, clientConn)
+		}
+	}
+	clientsMu.Unlock()
 }
 
 func broadcastMessage(targetId any, currentUserID string, code string, dataName string, data any) {

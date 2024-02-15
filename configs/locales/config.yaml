@@ -9,6 +9,7 @@ mysql:
   db: online_voice_channel
 
 redis:
+  redisURL: ${REDIS_URL}
   redisDbName: 0
   redisHost: ${REDIS_HOST}
   redisPort: ${REDIS_PORT}

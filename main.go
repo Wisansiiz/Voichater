@@ -26,7 +26,9 @@ func main() {
 	}
 	// 注册路由
 	r := routers.SetupRouter()
-	if err = r.Run(fmt.Sprintf(":%d", configs.Conf.Port)); err != nil {
+	if err = r.RunTLS(fmt.Sprintf(":%d", configs.Conf.Port),
+		"./cert/server.pem",
+		"./cert/server-key.pem"); err != nil {
 		fmt.Printf("server startup failed, err:%v\n", err)
 		panic(err)
 	}

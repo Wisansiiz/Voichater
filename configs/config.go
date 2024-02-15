@@ -31,6 +31,7 @@ type MySqlConfig struct {
 
 // RedisConfig 数据库配置
 type RedisConfig struct {
+	RedisURL      string `yaml:"redisURL"`
 	RedisHost     string `yaml:"redisHost"`
 	RedisPort     string `yaml:"redisPort"`
 	RedisUsername string `yaml:"redisUsername"`

@@ -7,12 +7,14 @@ import (
 	"Voichatter/pkg/utils/translator"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"time"
 )
 
 func UserRegister(user *models.User) (err error) {
 	if err = translator.ReErr(user); err != nil {
-		return err
+		log.Println(err)
+		return errors.New("注册信息未填写正确")
 	}
 	pwd, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost) //加密处理
 	if err != nil {
@@ -26,7 +28,8 @@ func UserRegister(user *models.User) (err error) {
 
 func UserLogin(user *models.UserLoginResponse) (token string, err error) {
 	if err = translator.ReErr(user); err != nil {
-		return
+		log.Println(err)
+		return "", errors.New("登录信息未填写正确")
 	}
 	// 数据库内的用户名密码
 	var u models.User
@@ -75,7 +78,8 @@ func CreateServer(user *models.User, server *models.Server) (err error) {
 		ServerTheme:   server.ServerTheme,
 	}
 	if err = translator.ReErr(s); err != nil {
-		return
+		log.Println(err)
+		return errors.New("服务器信息未填写正确")
 	}
 	if err = dao.DB.Create(&s).Error; err != nil {
 		return errors.New("创建服务器失败")

@@ -20,8 +20,8 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "success",
+		"code":     200,
+		"messages": "success",
 	})
 }
 
@@ -31,15 +31,15 @@ func UserLogin(c *gin.Context) {
 	token, err := service.UserLogin(&user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": 400,
-			"msg":  "账号或密码错误",
-			"data": err.Error(),
+			"code":     400,
+			"messages": "账号或密码错误",
+			"data":     err.Error(),
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "success",
+		"code":     200,
+		"messages": "success",
 		"data": gin.H{
 			"token": token,
 		},
@@ -55,9 +55,9 @@ func FindUserServersList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "success",
-		"data": server,
+		"code":     200,
+		"messages": "success",
+		"data":     server,
 	})
 }
 
@@ -67,16 +67,16 @@ func UserLogout(c *gin.Context) {
 	token := parts[1]
 	if err := service.UserLogout(token); err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "退出登录发生错误",
-			"data": "",
+			"code":     400,
+			"messages": "退出登录发生错误",
+			"data":     "",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "退出登录成功",
-		"data": "",
+		"code":     200,
+		"messages": "退出登录成功",
+		"data":     "",
 	})
 }
 
@@ -88,16 +88,16 @@ func CreateServer(c *gin.Context) {
 	_ = c.ShouldBind(&server)
 	if err := service.CreateServer(&user, &server); err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  err,
-			"data": "",
+			"code":     400,
+			"messages": err,
+			"data":     "",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "创建成功",
-		"data": "",
+		"code":     200,
+		"messages": "创建成功",
+		"data":     "",
 	})
 }
 
@@ -107,8 +107,9 @@ var (
 			return true // 允许所有来源
 		},
 	}
-	clients   = make(map[*websocket.Conn]string)
-	clientsMu = &sync.RWMutex{}
+	clients       = make(map[*websocket.Conn]string)
+	groupChannels = make(map[string][]*websocket.Conn)
+	clientsMu     = &sync.RWMutex{}
 )
 
 func HandleWebSocket(c *gin.Context) {
@@ -123,49 +124,100 @@ func HandleWebSocket(c *gin.Context) {
 	}
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
+		log.Println("conn.Close()")
 		if err != nil {
-			panic(err)
+			log.Println("conn.Close():", err)
 			return
 		}
 	}(conn)
 
+	channelId := c.Query("channelId")
 	currentUserID := c.Query("id")
 	clientsMu.Lock()
 	clients[conn] = currentUserID
 	clientsMu.Unlock()
 	// 接收和处理消息
 	for {
-		var message Msg
+		var msg Msg
 		_, p, err := conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			log.Println("err:", err)
 			break
 		}
-		if err = json.Unmarshal(p, &message); err != nil {
+		if err = json.Unmarshal(p, &msg); err != nil {
 			return
 		}
-		if message.Code == "offer" {
-			targetId := message.Data["targetId"]
-			offer := message.Data["offer"]
+		if msg.Code == "offer" {
+			targetId := msg.Data["targetId"]
+			offer := msg.Data["offer"]
 			broadcastMessage(targetId, currentUserID, "offer", "offer", offer)
-		} else if message.Code == "answer" {
-			targetId := message.Data["targetId"]
-			answer := message.Data["answer"]
+		} else if msg.Code == "answer" {
+			targetId := msg.Data["targetId"]
+			answer := msg.Data["answer"]
 			broadcastMessage(targetId, currentUserID, "answer", "answer", answer)
-		} else if message.Code == "icecandidate" {
-			targetId := message.Data["targetId"]
-			candidate := message.Data["candidate"]
+		} else if msg.Code == "icecandidate" {
+			targetId := msg.Data["targetId"]
+			candidate := msg.Data["candidate"]
 			broadcastMessage(targetId, currentUserID, "icecandidate", "candidate", candidate)
+		} else if msg.Code == "join_group" {
+			clientsMu.Lock()
+			groupChannels[channelId] = append(groupChannels[channelId], conn)
+			clientsMu.Unlock()
+
+			if broadcastGroups(msg.Code, channelId, conn, currentUserID) {
+				return
+			}
+		} else if msg.Code == "leave_group" {
+			if broadcastGroups(msg.Code, channelId, conn, currentUserID) {
+				return
+			}
+			break
 		}
 	}
-	// 在连接关闭时，将其从房间中移除
+
+	if channelId != "" {
+		// 在连接关闭时，将其从房间中移除
+		clientsMu.Lock()
+		connections := groupChannels[channelId]
+		for i, numbers := range connections {
+			if numbers == conn {
+				groupChannels[channelId] = append(connections[:i], connections[i+1:]...)
+				break
+			}
+		}
+		clientsMu.Unlock()
+	}
+
 	clientsMu.Lock()
+	// 在连接关闭时，将其从连接中移除
 	for clientConn := range clients {
 		if clientConn == conn {
 			delete(clients, clientConn)
 		}
 	}
 	clientsMu.Unlock()
+}
+
+func broadcastGroups(code string, channelId string, conn *websocket.Conn, currentUserID string) bool {
+	clientsMu.RLock()
+	connections := groupChannels[channelId]
+	clientsMu.RUnlock()
+	for _, numbers := range connections {
+		if conn != numbers {
+			message := gin.H{
+				"code": code,
+				"data": gin.H{
+					"fromId": currentUserID,
+				},
+			}
+			jsonBytes, _ := json.Marshal(message)
+			if err := numbers.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
+				log.Println("Error writing messages:", err)
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func broadcastMessage(targetId any, currentUserID string, code string, dataName string, data any) {
@@ -180,7 +232,7 @@ func broadcastMessage(targetId any, currentUserID string, code string, dataName 
 			}
 			jsonBytes, _ := json.Marshal(message)
 			if err := clientConn.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
-				log.Println("Error writing message:", err)
+				log.Println("Error writing messages:", err)
 				return
 			}
 		}

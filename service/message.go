@@ -36,7 +36,7 @@ func HandleWebSocket(c *gin.Context) {
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
 		if err != nil {
-			panic(err)
+			log.Println(err)
 			return
 		}
 	}(conn)
@@ -59,8 +59,15 @@ func HandleWebSocket(c *gin.Context) {
 
 		// 持久化消息到数据库
 		content := string(p)
-		dao.DB.Create(&models.Message{Content: content, ChannelID: channelID, SendDate: time.Now()})
-
+		userId, _ := c.Get("user_id")
+		dao.DB.Create(
+			&models.Message{
+				SenderUserID: userId.(uint),
+				Content:      content,
+				ChannelID:    channelID,
+				SendDate:     time.Now(),
+			},
+		)
 		// 将消息广播给房间内的所有客户端
 		go broadcastMessage(channelID, messageType, p)
 	}
@@ -68,8 +75,8 @@ func HandleWebSocket(c *gin.Context) {
 	// 在连接关闭时，将其从房间中移除
 	roomsMutex.Lock()
 	connections := rooms[channelID]
-	for i, c := range connections {
-		if c == conn {
+	for i, number := range connections {
+		if number == conn {
 			rooms[channelID] = append(connections[:i], connections[i+1:]...)
 			break
 		}
@@ -84,13 +91,10 @@ func broadcastMessage(channelID string, messageType int, message []byte) {
 	roomsMutex.RUnlock()
 
 	for _, conn := range connections {
-		// 发送消息给除了发送者之外的所有客户端
-		//if conn != sender {
 		// 发送消息给所有客户端包括自己
 		if err := conn.WriteMessage(messageType, message); err != nil {
 			log.Println("Error writing message:", err)
 			return
 		}
-		//}
 	}
 }

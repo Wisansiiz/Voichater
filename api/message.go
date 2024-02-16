@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-var msg []models.Message
+var messages []models.Message
 
 func Ws(c *gin.Context) {
 	// WebSocket处理程序
@@ -15,18 +15,18 @@ func Ws(c *gin.Context) {
 }
 
 func FindMessage(c *gin.Context) {
-	_ = c.ShouldBind(&msg)
+	_ = c.ShouldBind(&messages)
 	channelID := c.Query("channelID")
-	if err := service.FindHistory(&msg, channelID); err != nil {
+	if err := service.FindHistory(&messages, channelID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": 400,
-			"msg":  "发生错误",
+			"code":     400,
+			"messages": "发生错误",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "success",
-		"data": msg,
+		"code":     200,
+		"messages": "success",
+		"data":     messages,
 	})
 }

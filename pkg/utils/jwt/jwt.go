@@ -8,10 +8,9 @@ import (
 )
 
 type MyCustomClaims struct {
-	UserID       uint   `json:"userID"`
-	Username     string `json:"username"`
-	PasswordHash string `json:"password"`
-	GrantScope   string `json:"grant_scope"`
+	UserID     uint   `json:"userID"`
+	Username   string `json:"username"`
+	GrantScope string `json:"grant_scope"`
 	jwt.RegisteredClaims
 }
 
@@ -20,10 +19,9 @@ const signKey = "my jwt"
 
 func GenerateToken(user models.User) (string, error) {
 	claim := MyCustomClaims{
-		UserID:       user.UserID,
-		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
-		GrantScope:   "read_user_info",
+		UserID:     user.UserID,
+		Username:   user.Username,
+		GrantScope: "read_user_info",
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:  "Auth_Server", // 签发者
 			Subject: user.Username, // 签发对象

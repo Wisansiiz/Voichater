@@ -75,7 +75,7 @@ func CreateServer(user *models.User, server *models.Server) (err error) {
 		ServerName:    server.ServerName,
 		CreatorUserID: user.UserID,
 		CreateDate:    time.Now(),
-		ServerTheme:   server.ServerTheme,
+		ServerType:    server.ServerType,
 	}
 	if err = translator.ReErr(s); err != nil {
 		log.Println(err)

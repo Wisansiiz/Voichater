@@ -6,6 +6,7 @@ import (
 	"Voichatter/interceptor"
 	"Voichatter/middleware"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func SetupRouter() *gin.Engine {
@@ -15,20 +16,28 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.Cors())
 
-	r.GET("/yy", api.HandleWebSocket)
-
 	v := r.Group("api")
+	v.GET("/yy", api.HandleWebSocket)
+	v.GET("/ws", api.Ws)
 	{
 		v.POST("/register", api.UserRegister)
 		v.POST("/login", api.UserLogin)
-		v.GET("/ws", api.Ws)
 		authed := v.Group("/") // 需要登陆保护
 		authed.Use(interceptor.ConfInterceptor())
 		{
+			authed.GET("/auth", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{
+					"code":     200,
+					"messages": "欢迎回来",
+				})
+			})
+
+			//authed.GET("/ws", api.Ws)
 			authed.POST("/logout", api.UserLogout)
 			authed.GET("/servers-list", api.FindUserServersList)
 			authed.GET("/history", api.FindMessage)
 			authed.POST("/create-server", api.CreateServer)
+			authed.GET("/get-server-name", api.FindServerName)
 		}
 	}
 	return r

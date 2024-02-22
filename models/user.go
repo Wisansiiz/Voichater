@@ -7,7 +7,7 @@ import (
 
 // User 表示用户表的结构体
 type User struct {
-	UserID           uint            `json:"user_id" gorm:"primarykey"`
+	UserID           uint            `json:"user_id" gorm:"primaryKey"`
 	Username         string          `json:"username" form:"username" validate:"required,min=3,max=20"`
 	Email            string          `json:"email" form:"email" validate:"required,email"`
 	PasswordHash     string          `json:"password" form:"password" validate:"required,min=6"`

@@ -29,6 +29,7 @@ func SetupRouter() *gin.Engine {
 				c.JSON(http.StatusOK, gin.H{
 					"code":     200,
 					"messages": "欢迎回来",
+					"data":     c.MustGet("user_id"),
 				})
 			})
 
@@ -37,7 +38,8 @@ func SetupRouter() *gin.Engine {
 			authed.GET("/servers-list", api.FindUserServersList)
 			authed.GET("/history", api.FindMessage)
 			authed.POST("/create-server", api.CreateServer)
-			authed.GET("/get-server-name", api.FindServerName)
+			authed.POST("/join-server", api.JoinServer)
+			//authed.GET("/get-server-name", api.FindServerName)
 		}
 	}
 	return r

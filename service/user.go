@@ -85,13 +85,45 @@ func CreateServer(user *models.User, server *models.Server) (err error) {
 		return errors.New("创建服务器失败")
 	}
 	m := models.Member{
-		UserID:      s.CreatorUserID,
-		ServerID:    s.ServerID,
-		JoinDate:    time.Now(),
-		Permissions: "admin",
+		UserID:       s.CreatorUserID,
+		ServerID:     s.ServerID,
+		JoinDate:     time.Now(),
+		SPermissions: "admin",
+		CPermissions: "admin",
 	}
 	if err = dao.DB.Create(&m).Error; err != nil {
 		return errors.New("创建服务器成员失败")
+	}
+	return err
+}
+
+func JoinServer(member *models.Member) error {
+	err := dao.DB.Model(&models.Server{}).
+		Select("server_id").
+		Where("server_id = ? AND server_type = 'public' ", member.ServerID).
+		Find(&member).Error
+	if err != nil {
+		return errors.New("服务器不存在")
+	}
+	// 判断是否已经加入过服务器
+	err = dao.DB.Model(&models.Member{}).
+		Select("member_id").
+		Where("server_id = ? AND user_id = ? ", member.ServerID, member.UserID).
+		Find(&member).Error
+	if err != nil || member.MemberID != 0 {
+		return errors.New("已经加入过服务器")
+	}
+	m := models.Member{
+		ServerID:     member.ServerID,
+		UserID:       member.UserID,
+		JoinDate:     time.Now(),
+		SPermissions: "member",
+		CPermissions: "member",
+	}
+	// 添加成员
+	err = dao.DB.Model(&models.Member{}).Create(&m).Error
+	if err != nil {
+		return errors.New("添加成员失败")
 	}
 	return err
 }

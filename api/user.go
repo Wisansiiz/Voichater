@@ -30,7 +30,7 @@ func UserLogin(c *gin.Context) {
 	_ = c.ShouldBind(&user)
 	token, err := service.UserLogin(&user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"code":     400,
 			"messages": "账号或密码错误",
 			"data":     err.Error(),
@@ -89,7 +89,7 @@ func CreateServer(c *gin.Context) {
 	if err := service.CreateServer(&user, &server); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":     400,
-			"messages": err,
+			"messages": err.Error(),
 			"data":     "",
 		})
 		return
@@ -97,6 +97,27 @@ func CreateServer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":     200,
 		"messages": "创建成功",
+		"data":     "",
+	})
+}
+
+func JoinServer(c *gin.Context) {
+	userId := c.MustGet("user_id")
+	var member models.Member
+	member.UserID = userId.(uint)
+	_ = c.ShouldBind(&member)
+	if err := service.JoinServer(&member); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":     400,
+			"messages": err.Error(),
+			"data":     "",
+		})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":     200,
+		"messages": "加入成功",
 		"data":     "",
 	})
 }

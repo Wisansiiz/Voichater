@@ -60,14 +60,17 @@ func HandleWebSocket(c *gin.Context) {
 		// 持久化消息到数据库
 		content := string(p)
 		userId, _ := c.Get("user_id")
-		dao.DB.Create(
+		err = dao.DB.Create(
 			&models.Message{
 				SenderUserID: userId.(uint),
 				Content:      content,
 				ChannelID:    channelID,
 				SendDate:     time.Now(),
 			},
-		)
+		).Error
+		if err != nil {
+			return
+		}
 		// 将消息广播给房间内的所有客户端
 		go broadcastMessage(channelID, messageType, p)
 	}

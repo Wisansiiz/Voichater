@@ -39,6 +39,8 @@ func SetupRouter() *gin.Engine {
 			authed.GET("/history", api.FindMessage)
 			authed.POST("/create-server", api.CreateServer)
 			authed.POST("/join-server", api.JoinServer)
+			authed.DELETE("/delete-server/:serverId", api.DeleteServer)
+			authed.GET("/server-members/:serverId", api.GetServerMembers)
 			//authed.GET("/get-server-name", api.FindServerName)
 		}
 	}

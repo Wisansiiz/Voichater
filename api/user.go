@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -118,6 +119,25 @@ func JoinServer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":     200,
 		"messages": "加入成功",
+		"data":     "",
+	})
+}
+
+func DeleteServer(c *gin.Context) {
+	serverId, _ := strconv.ParseUint(c.Param("serverId"), 10, 64)
+	userId := c.MustGet("user_id").(uint)
+	if err := service.DeleteServer(uint(serverId), userId); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":     400,
+			"messages": err.Error(),
+			"data":     "",
+		})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":     200,
+		"messages": "删除成功",
 		"data":     "",
 	})
 }

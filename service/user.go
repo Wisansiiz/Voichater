@@ -89,7 +89,6 @@ func CreateServer(user *models.User, server *models.Server) (err error) {
 		ServerID:     s.ServerID,
 		JoinDate:     time.Now(),
 		SPermissions: "admin",
-		CPermissions: "admin",
 	}
 	if err = dao.DB.Create(&m).Error; err != nil {
 		return errors.New("创建服务器成员失败")
@@ -118,12 +117,42 @@ func JoinServer(member *models.Member) error {
 		UserID:       member.UserID,
 		JoinDate:     time.Now(),
 		SPermissions: "member",
-		CPermissions: "member",
 	}
 	// 添加成员
 	err = dao.DB.Model(&models.Member{}).Create(&m).Error
 	if err != nil {
 		return errors.New("添加成员失败")
+	}
+	return err
+}
+
+func DeleteServer(serverId uint, userId uint) error {
+	var s models.Server
+	// 判断userId是否为创建者
+	err := dao.DB.Model(&models.Server{}).
+		Select("server_id").
+		Where("server_id = ? AND creator_user_id = ?", serverId, userId).
+		Find(&s).Error
+	if err != nil {
+		return errors.New("查询出错")
+	}
+	if s.ServerID == 0 {
+		log.Println(userId, "不是服务器创建者")
+		err = dao.DB.Where("server_id = ? AND user_id = ?", serverId, userId).
+			Delete(&models.Member{}).Error
+		if err != nil {
+			return errors.New("删除成员失败")
+		}
+	} else {
+		err = dao.DB.Where("server_id = ?", serverId).
+			Delete(&models.Member{}).Error
+		if err != nil {
+			return errors.New("删除成员失败")
+		}
+		err = dao.DB.Delete(&s).Error
+		if err != nil {
+			return errors.New("删除服务器失败")
+		}
 	}
 	return err
 }

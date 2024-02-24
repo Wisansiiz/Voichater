@@ -6,26 +6,6 @@ import (
 	"errors"
 )
 
-func FindServerName(userId uint, serverId uint) (string, error) {
-	var serverList []uint
-	// userID为userId的用户加入的所有服务器id列表
-	err := dao.DB.Table("member").Select("server_id").Where("user_id = ?", userId).Find(&serverList).Error
-	if err != nil {
-		return "", errors.New("server not found or you are not in this server")
-	}
-	for _, id := range serverList {
-		if id == serverId {
-			var serverName string
-			err = dao.DB.Model(&models.Server{}).Where("server_id = ?", serverId).Select("server_name").Find(&serverName).Error
-			if err != nil {
-				return "", err
-			}
-			return serverName, nil
-		}
-	}
-	return "", errors.New("server not found or you are not in this server")
-}
-
 func GetServerMembers(serverId uint, users *[]models.UserList4Server) error {
 	// 获取服务器的成员列表的用户信息
 	var userIds []uint
